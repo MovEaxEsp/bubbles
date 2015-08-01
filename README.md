@@ -1,1 +1,3 @@
 # bubbles
+
+A simple game.

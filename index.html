@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<body oncontextmenu='return false'>
+
+<canvas id="myCanvas" width="500" height="500"
+style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.</canvas>
+
+<script>
+// Set up the canvas
+var c = document.getElementById("myCanvas");
+c.width = screen.width;
+c.height = screen.height;
+c.addEventListener('mousedown', handleMouseDown, false);
+c.addEventListener('mousemove', handleMouseMove, false);
+var cRect = c.getBoundingClientRect();
+var ctx = c.getContext("2d");
+
+// Globals
+var numCircles = 1;
+var circles = [];
+var isFullScreen = false;
+var Sounds = {
+    pop: [ "pop1.wav", "pop2.wav" ],
+    yay: [ "yay1.wav", "yay2.wav", "yay3.wav" ],
+};
+
+var Images = {
+    backgrounds: ["background1.jpg", "background2.jpg", "background3.jpg",
+                  "background4.jpg"],
+    bubbles: [ "bubble1.png", "bubble2.png" ],
+};
+
+// Replace each sound name with an Audio object for it
+for (var key in Sounds) {
+    for (var idx in Sounds[key]) {
+        Sounds[key][idx] = new Audio("sounds/" + Sounds[key][idx]);
+    }
+}
+
+// Replace each image name with an Image object
+for (var key in Images) {
+    for (var idx in Images[key]) {
+        var img = new Image();
+        img.src = "images/" + Images[key][idx];
+        Images[key][idx] = img;
+    }
+}
+
+// Add a function on arrays to pick a random element from the array.
+Array.prototype.random = function() {
+    return this[Math.round((Math.random() * (this.length- 1)))];
+};
+
+var curBackground = Images.backgrounds.random();
+
+// Create a circle at the specified 'x' and 'y' coordinates, or at random
+// coordinates if 'x' and 'y' aren't specified.
+function createCircle(x, y) {
+    var ret =  {
+        x: x || Math.random() * cRect.width,
+        y: y || Math.random() * cRect.height,
+        radius: Math.random() * 50 + 50,
+        speedX: Math.random() * 200 - 100,
+        speedY: Math.random() * 200 - 100,
+        image: Images.bubbles.random(),
+    };
+
+    return ret;
+}
+
+// Advance the position of the specified 'circ' after the specified 'elapsed'
+// time has passed.
+function advanceCircle(circ, elapsed) {
+    circ.x += circ.speedX * elapsed;
+    circ.y += circ.speedY * elapsed;
+
+    if (circ.x > cRect.width) {
+        circ.x = 0;
+    }
+
+    if (circ.y >= cRect.height) {
+        circ.y = 0;
+    }
+
+    if (circ.x < 0) {
+        circ.x = cRect.width;
+    }
+
+    if (circ.y < 0) {
+        circ.y = cRect.height;
+    }
+}
+
+// Draw the specified 'circ'.
+function drawCircle(circ) {
+    ctx.drawImage(circ.image,
+                  circ.x - circ.radius,
+                  circ.y - circ.radius,
+                  2 * circ.radius,
+                  2 * circ.radius);
+}
+
+function handleMouseDown(event) {
+    var x = event.clientX - cRect.left;
+    var y = event.clientY - cRect.top;
+
+    if (!isFullScreen) {
+        c.webkitRequestFullScreen();
+
+        // Getting the bounding client rect immediately after requesting
+        // full-screen doesn't seem to give the right value.
+        setTimeout(function() { cRect = c.getBoundingClientRect(); }, 100);
+    }
+
+    if (event.button ===  0) {
+        bubbleHit(x, y);
+    }
+    else if (event.button === 2) {
+        canvasRightClicked(x, y);
+    }
+}
+
+function handleMouseMove(event) {
+    var x = event.clientX - cRect.left;
+    var y = event.clientY - cRect.top;
+
+    //bubbleHit(x, y);
+}
+
+// Play one of the specified 'sounds'
+function playSound(sounds) {
+    var sound = sounds.random();
+    sound.currentTime = 0;
+    sound.play();
+}
+
+// Handle an attempt to hit a bubble at the specified 'x' and 'y' coordinates
+function bubbleHit(x, y) {
+    for (var circIdx in circles) {
+        var circ = circles[circIdx];
+
+        // See if the distance from the click to the center of the circle is
+        // less than the radius
+        var xDiff = circ.x - x;
+        var yDiff = circ.y - y;
+        var distance = Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
+        if (distance <= circ.radius) {
+            // Remove circles until none are left, then create them all again,
+            // plus 1 extra
+            circles.splice(circIdx, 1);
+            playSound(Sounds.pop);
+            break;
+        }
+    }
+
+    if (circles.length === 0) {
+        numCircles++;
+        for (var i = 0; i < numCircles; ++i) {
+            circles.push(createCircle());
+        }
+
+        // Change the background
+        curBackground = Images.backgrounds.random();
+
+        // Play a yay :)
+        setTimeout(function() { playSound(Sounds.yay); }, 500);
+    }
+}
+
+function canvasRightClicked(x, y) {
+    circles.push(createCircle(x, y));
+}
+
+// Update our state/draw our frame.  Assume we're called 60 times/sec
+function draw() {
+    var elapsed = 1.0/60;
+
+    ctx.clearRect(0, 0, cRect.width, cRect.height);
+    ctx.drawImage(curBackground, 0, 0, cRect.width, cRect.height);
+
+    for (var i = 0; i < circles.length; ++i) {
+        var circ = circles[i];
+        advanceCircle(circ, elapsed);
+        drawCircle(circ);
+    }
+}
+
+// Create initial circles
+for (var i = 0; i < numCircles; ++i ) {
+    circles.push(createCircle());
+}
+
+// Set up our draw function to be called 60 times/sec
+setInterval(draw, 1000/60);
+//setInterval(draw, 2000);
+
+</script>
+
+</body>
+</html>
