@@ -29,11 +29,11 @@ var Sounds = {
     yay: [ "yay1.wav", "yay2.wav", "yay3.wav" ],
 };
 
-var Images = {
-    backgrounds: ["background1.jpg", "background2.jpg", "background3.jpg",
-                  "background4.jpg"],
-    bubbles: [ "bubble1.png", "bubble2.png" ],
-};
+var Backgrounds = ["busytown", "clifford",
+                  "jake", "paw-patrol", "thomas",
+                  "wonder-woman", "frozen", "my-little-pony"];
+
+var Bubbles = [ "bubble1.png", "bubble2.png" ];
 
 // Replace each sound name with an Audio object for it
 for (var key in Sounds) {
@@ -42,21 +42,48 @@ for (var key in Sounds) {
     }
 }
 
-// Replace each image name with an Image object
-for (var key in Images) {
-    for (var idx in Images[key]) {
-        var img = new Image();
-        img.src = "images/" + Images[key][idx];
-        Images[key][idx] = img;
-    }
+// Replace each Background name with an object
+// {
+//   image: Image,
+//   music: Audio
+// }
+for (var key in Backgrounds) {
+    var img = new Image();
+    img.src = "backgrounds/" + Backgrounds[key] + ".jpg";
+    Backgrounds[key] = {
+        image: img,
+        music: new Audio("music/" + Backgrounds[key] + ".mp3")
+    };
+}
+
+// Replace each Bubbles name with an Image object
+for (var key in Bubbles) {
+    var img = new Image();
+    img.src = "images/" + Bubbles[key];
+    Bubbles[key] = img;
 }
 
 // Add a function on arrays to pick a random element from the array.
-Array.prototype.random = function() {
-    return this[Math.round((Math.random() * (this.length- 1)))];
+Array.prototype.random = function(current) {
+    var newVal = current;
+    while (newVal === current) {
+        newVal = this[Math.round((Math.random() * (this.length- 1)))];
+    }
+    return newVal;
 };
 
-var curBackground = Images.backgrounds.random();
+var curBackground;
+
+function changeBackground() {
+    if (curBackground) {
+        curBackground.music.pause();
+    }
+
+    curBackground = Backgrounds.random(curBackground);
+    curBackground.music.currentTime = 0;
+    curBackground.music.play();
+}
+changeBackground();
 
 // Create a circle at the specified 'x' and 'y' coordinates, or at random
 // coordinates if 'x' and 'y' aren't specified.
@@ -66,9 +93,9 @@ function createCircle(x, y) {
         y: y || Math.random() * cRect.height,
         radius: Math.random() * (MAX_BUBBLE_RADIUS - MIN_BUBBLE_RADIUS) +
                                                              MIN_BUBBLE_RADIUS,
-        speedX: Math.random() * 200 - 100,
-        speedY: Math.random() * 200 - 100,
-        image: Images.bubbles.random(),
+        speedX: 0, //Math.random() * 200 - 100,
+        speedY: 0, //Math.random() * 200 - 100,
+        image: Bubbles.random(-1),
     };
 
     return ret;
@@ -145,7 +172,8 @@ function handleMouseDown(event) {
         bubbleHit(x, y);
     }
     else if (event.button === 2) {
-        canvasRightClicked(x, y);
+        bubbleHit(x, y);
+        //canvasRightClicked(x, y);
     }
 }
 
@@ -158,7 +186,7 @@ function handleMouseMove(event) {
 
 // Play one of the specified 'sounds'
 function playSound(sounds) {
-    var sound = sounds.random();
+    var sound = sounds.random(-1);
     sound.currentTime = 0;
     sound.play();
 }
@@ -215,8 +243,7 @@ function bubbleHit(x, y) {
             circles.push(createCircle());
         }
 
-        // Change the background
-        curBackground = Images.backgrounds.random();
+        changeBackground();
 
         // Play a yay :)
         setTimeout(function() { playSound(Sounds.yay); }, 500);
@@ -224,7 +251,7 @@ function bubbleHit(x, y) {
 }
 
 function canvasRightClicked(x, y) {
-    circles.push(createCircle(x, y));
+    //circles.push(createCircle(x, y));
 }
 
 // Update our state/draw our frame.  Assume we're called 60 times/sec
@@ -232,7 +259,7 @@ function draw() {
     var elapsed = 1.0/60;
 
     // Draw background
-    ctx.drawImage(curBackground, 0, 0, cRect.width, cRect.height);
+    ctx.drawImage(curBackground.image, 0, 0, cRect.width, cRect.height);
 
     // Draw circles
     for (var i = 0; i < circles.length; ++i) {
