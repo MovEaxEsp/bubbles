@@ -26,12 +26,12 @@ var circles = [];
 var isFullScreen = false;
 var Sounds = {
     pop: [ "pop1.wav", "pop2.wav" ],
-    yay: [ "yay1.wav", "yay2.wav", "yay3.wav" ],
+    yay: [ "yay1.wav", "yay2.wav", "yay3.wav", "yay4.wav", "yay5.wav" ],
 };
 
 var Backgrounds = ["busytown", "clifford",
                   "jake", "paw-patrol", "thomas",
-                  "wonder-woman", "frozen", "my-little-pony"];
+                  "wonder-woman", "frozen", "my-little-pony", "hulk"];
 
 var Bubbles = [ "bubble1.png", "bubble2.png" ];
 
@@ -93,8 +93,8 @@ function createCircle(x, y) {
         y: y || Math.random() * cRect.height,
         radius: Math.random() * (MAX_BUBBLE_RADIUS - MIN_BUBBLE_RADIUS) +
                                                              MIN_BUBBLE_RADIUS,
-        speedX: 0, //Math.random() * 200 - 100,
-        speedY: 0, //Math.random() * 200 - 100,
+        speedX: 0, //Math.random() * 20 - 10,
+        speedY: 0, // Math.random() * 20 - 10,
         image: Bubbles.random(-1),
     };
 
