@@ -17,8 +17,8 @@ var cRect = c.getBoundingClientRect();
 var ctx = c.getContext("2d");
 
 // CONSTANTS
-var MIN_BUBBLE_RADIUS = 50;
-var MAX_BUBBLE_RADIUS = 100;
+var MIN_BUBBLE_RADIUS = 150;
+var MAX_BUBBLE_RADIUS = 200;
 
 // Globals
 var numCircles = 1;
@@ -88,13 +88,15 @@ changeBackground();
 // Create a circle at the specified 'x' and 'y' coordinates, or at random
 // coordinates if 'x' and 'y' aren't specified.
 function createCircle(x, y) {
+    var speed = 0;
+
     var ret =  {
         x: x || Math.random() * cRect.width,
         y: y || Math.random() * cRect.height,
         radius: Math.random() * (MAX_BUBBLE_RADIUS - MIN_BUBBLE_RADIUS) +
                                                              MIN_BUBBLE_RADIUS,
-        speedX: 0, //Math.random() * 20 - 10,
-        speedY: 0, // Math.random() * 20 - 10,
+        speedX: Math.random() * (speed * 2) - speed,
+        speedY: Math.random() * (speed * 2) - speed,
         image: Bubbles.random(-1),
     };
 
