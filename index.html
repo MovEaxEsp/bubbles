@@ -9,6 +9,7 @@ Your browser does not support the HTML5 canvas tag.</canvas>
 <script>
 // Set up the canvas
 var c = document.getElementById("myCanvas");
+//c.style.visibility="hidden";
 c.width = screen.width;
 c.height = screen.height;
 c.addEventListener('mousedown', handleMouseDown, false);
@@ -17,8 +18,16 @@ var cRect = c.getBoundingClientRect();
 var ctx = c.getContext("2d");
 
 // CONSTANTS
-var MIN_BUBBLE_RADIUS = 150;
-var MAX_BUBBLE_RADIUS = 200;
+var isEmi = true;
+if (isEmi) {
+    var MIN_BUBBLE_RADIUS = 200;
+    var MAX_BUBBLE_RADIUS = 300;
+    var SPEED             = 0;
+} else {
+    var MIN_BUBBLE_RADIUS = 75;
+    var MAX_BUBBLE_RADIUS = 150;
+    var SPEED             = 30;
+}
 
 // Globals
 var numCircles = 1;
@@ -26,12 +35,14 @@ var circles = [];
 var isFullScreen = false;
 var Sounds = {
     pop: [ "pop1.wav", "pop2.wav" ],
-    yay: [ "yay1.wav", "yay2.wav", "yay3.wav", "yay4.wav", "yay5.wav" ],
+    yay: [ "yay1.wav", "yay2.wav", "yay3.wav", "yay4.wav", "yay5.wav",
+           "kimEmi.wav", "kimMia.wav", "allHurray.wav" ],
 };
 
 var Backgrounds = ["busytown", "clifford",
                   "jake", "paw-patrol", "thomas",
-                  "wonder-woman", "frozen", "my-little-pony", "hulk"];
+                  "wonder-woman", "frozen", "my-little-pony", "hulk",
+                  "brave"];
 
 var Bubbles = [ "bubble1.png", "bubble2.png" ];
 
@@ -88,15 +99,13 @@ changeBackground();
 // Create a circle at the specified 'x' and 'y' coordinates, or at random
 // coordinates if 'x' and 'y' aren't specified.
 function createCircle(x, y) {
-    var speed = 0;
-
     var ret =  {
         x: x || Math.random() * cRect.width,
         y: y || Math.random() * cRect.height,
         radius: Math.random() * (MAX_BUBBLE_RADIUS - MIN_BUBBLE_RADIUS) +
                                                              MIN_BUBBLE_RADIUS,
-        speedX: Math.random() * (speed * 2) - speed,
-        speedY: Math.random() * (speed * 2) - speed,
+        speedX: Math.random() * (SPEED * 2) - SPEED,
+        speedY: Math.random() * (SPEED * 2) - SPEED,
         image: Bubbles.random(-1),
     };
 
@@ -278,7 +287,6 @@ for (var i = 0; i < numCircles; ++i ) {
 
 // Set up our draw function to be called 60 times/sec
 setInterval(draw, 1000/60);
-//setInterval(draw, 2000);
 
 </script>
 
