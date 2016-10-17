@@ -12,6 +12,7 @@ var c = document.getElementById("myCanvas");
 c.width = screen.width;
 c.height = screen.height;
 c.addEventListener('mousedown', handleMouseDown, false);
+c.addEventListener('touchstart', handleMouseDown, false);
 c.addEventListener('mousemove', handleMouseMove, false);
 var cRect = c.getBoundingClientRect();
 var ctx = c.getContext("2d");
