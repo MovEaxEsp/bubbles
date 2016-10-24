@@ -1,122 +1,101 @@
-<!DOCTYPE html>
-<html>
-<body oncontextmenu='return false'>
-
-<canvas id="myCanvas" width="500" height="500"
-style="border:1px solid #d3d3d3;">
-Your browser does not support the HTML5 canvas tag.</canvas>
-
-<script>
-// Set up the canvas
-var c = document.getElementById("myCanvas");
-c.width = screen.width;
-c.height = screen.height;
-c.addEventListener('mousedown', handleMouseDown, false);
-c.addEventListener('touchstart', handleMouseDown, false);
-c.addEventListener('mousemove', handleMouseMove, false);
-var cRect = c.getBoundingClientRect();
-var ctx = c.getContext("2d");
-
 // CONSTANTS
-
-// FUNCTIONS
-function getParameterByName(name, url) {
-    if (!url) url = window.location.href;
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
-}
-var player = getParameterByName("player");
+var FPS=30;
 
 // Globals
 var numCircles = 1;
 var circles = [];
-var isFullScreen = false;
-var Sounds = {
-    pop: [ "pop1.wav", "pop2.wav" ],
+var cRect = null;
+var canvas = null;
+var ctx = null;
+var curBackground;
+var Sounds = null;
+var Backgrounds = null;
+var Bubbles = null;
+var SPEED = null;
+var MIN_BUBBLE_RADIUS = null;
+var MAX_BUBBLE_RADIUS = null;
+
+// FUNCTIONS
+
+function initResources(player) {
+    Sounds = {
+        pop: [ "pop1.wav", "pop2.wav" ],
+    };
+
+    Backgrounds = ["busytown", "clifford",
+                      "jake", "paw-patrol", "thomas",
+                      "wonder-woman", "frozen", "my-little-pony", "hulk"];
+
+    Bubbles = [ "bubble1.png", "bubble2.png" ];
+
+    if (player == "mia") {
+        SPEED = 30;
+        MIN_BUBBLE_RADIUS = 50;
+        MAX_BUBBLE_RADIUS = 100;
+        Sounds.yay = ["allHurray.wav", "kimMia.wav", "krysMia.wav",
+                      "pawWooHoo.wav"]
+    }
+    else {
+        SPEED = 0;
+        MIN_BUBBLE_RADIUS = 150;
+        MAX_BUBBLE_RADIUS = 200;
+        Sounds.yay = ["allHurray.wav", "emiDidIt.wav", "kimEmi.wav",
+                      "miaEmi.wav", "pawWooHoo.wav"]
+    }
+
+    // Replace each sound name with an Audio object for it
+    for (var key in Sounds) {
+        for (var idx in Sounds[key]) {
+            Sounds[key][idx] = new Audio("sounds/" + Sounds[key][idx]);
+        }
+    }
+
+    // Replace each Background name with an object
+    // {
+    //   image: Image,
+    //   music: Audio
+    // }
+    for (var key in Backgrounds) {
+        var img = new Image();
+        img.src = "backgrounds/" + Backgrounds[key] + ".jpg";
+        Backgrounds[key] = {
+            image: img,
+            music: new Audio("music/" + Backgrounds[key] + ".mp3")
+        };
+    }
+
+    // Replace each Bubbles name with an Image object
+    for (var key in Bubbles) {
+        var img = new Image();
+        img.src = "images/" + Bubbles[key];
+        Bubbles[key] = img;
+    }
 };
 
-var Backgrounds = ["brave", "busytown", "clifford",
-                   "frozen", "hulk", "jake", "my-little-pony", "paw-patrol",
-                   "thomas", "wonder-woman", "zootopia"];
-
-var Bubbles = [ "bubble1.png", "bubble2.png" ];
-
-if (player == "mia") {
-    var SPEED=30;
-    var MIN_BUBBLE_RADIUS = 50;
-    var MAX_BUBBLE_RADIUS = 100;
-    Sounds.yay = ["allHurray.wav", "kimMia.wav", "krysMia.wav",
-                  "pawWooHoo.wav"]
-}
-else {
-    var SPEED=0;
-    var MIN_BUBBLE_RADIUS = 150;
-    var MAX_BUBBLE_RADIUS = 200;
-    Sounds.yay = ["allHurray.wav", "emiDidIt.wav", "kimEmi.wav", "miaEmi.wav",
-                  "pawWooHoo.wav"]
-}
-
-
-// Replace each sound name with an Audio object for it
-for (var key in Sounds) {
-    for (var idx in Sounds[key]) {
-        Sounds[key][idx] = new Audio("sounds/" + Sounds[key][idx]);
-    }
-}
-
-// Replace each Background name with an object
-// {
-//   image: Image,
-//   music: Audio
-// }
-for (var key in Backgrounds) {
-    var img = new Image();
-    img.src = "backgrounds/" + Backgrounds[key] + ".jpg";
-    Backgrounds[key] = {
-        image: img,
-        music: new Audio("music/" + Backgrounds[key] + ".mp3")
-    };
-}
-
-// Replace each Bubbles name with an Image object
-for (var key in Bubbles) {
-    var img = new Image();
-    img.src = "images/" + Bubbles[key];
-    Bubbles[key] = img;
-}
-
-// Add a function on arrays to pick a random element from the array.
-Array.prototype.random = function(current) {
+function arrayRandom(array, current) {
     var newVal = current;
     while (newVal === current) {
-        var idx = Math.round((Math.random() * this.length) - .5);
+        var idx = Math.round((Math.random() * array.length) - .5);
         if (idx < 0) {
             idx = 0;
         }
-        else if (idx >= this.length) {
-            idx = this.length - 1;
+        else if (idx >= array.length) {
+            idx = array.length - 1;
         }
-        newVal = this[idx];
+        newVal = array[idx];
     }
     return newVal;
 };
-
-var curBackground;
 
 function changeBackground() {
     if (curBackground) {
         curBackground.music.pause();
     }
 
-    curBackground = Backgrounds.random(curBackground);
+    curBackground = arrayRandom(Backgrounds, curBackground);
     curBackground.music.currentTime = 0;
     curBackground.music.play();
 }
-changeBackground();
 
 // Create a circle at the specified 'x' and 'y' coordinates, or at random
 // coordinates if 'x' and 'y' aren't specified.
@@ -128,7 +107,7 @@ function createCircle(x, y) {
                                                              MIN_BUBBLE_RADIUS,
         speedX: SPEED * Math.random(),
         speedY: SPEED * Math.random(),
-        image: Bubbles.random(-1),
+        image: arrayRandom(Bubbles, -1),
     };
 
     return ret;
@@ -193,14 +172,6 @@ function handleMouseDown(event) {
     var x = event.clientX - cRect.left;
     var y = event.clientY - cRect.top;
 
-    if (!isFullScreen) {
-        c.webkitRequestFullScreen();
-
-        // Getting the bounding client rect immediately after requesting
-        // full-screen doesn't seem to give the right value.
-        setTimeout(function() { cRect = c.getBoundingClientRect(); }, 100);
-    }
-
     if (event.button ===  0) {
         bubbleHit(x, y);
     }
@@ -219,7 +190,7 @@ function handleMouseMove(event) {
 
 // Play one of the specified 'sounds'
 function playSound(sounds) {
-    var sound = sounds.random(-1);
+    var sound = arrayRandom(sounds, -1);
     sound.currentTime = 0;
     sound.play();
 }
@@ -289,7 +260,7 @@ function canvasRightClicked(x, y) {
 
 // Update our state/draw our frame.  Assume we're called 60 times/sec
 function draw() {
-    var elapsed = 1.0/60;
+    var elapsed = 1.0/FPS;
 
     // Draw background
     ctx.drawImage(curBackground.image, 0, 0, cRect.width, cRect.height);
@@ -302,16 +273,31 @@ function draw() {
     }
 }
 
-// Create initial circles
-for (var i = 0; i < numCircles; ++i ) {
-    circles.push(createCircle());
+function runGame(player) {
+    // Set up the canvas
+    canvas = document.getElementById("myCanvas");
+    canvas.width = screen.width;
+    canvas.height = screen.height;
+    canvas.addEventListener('mousedown', handleMouseDown, false);
+    canvas.addEventListener('mousemove', handleMouseMove, false);
+    cRect = canvas.getBoundingClientRect();
+    ctx = canvas.getContext("2d");
+
+    canvas.webkitRequestFullScreen();
+
+    // Getting the bounding client rect immediately after requesting
+    // full-screen doesn't seem to give the right value.
+    setTimeout(function() { cRect = canvas.getBoundingClientRect(); }, 100);
+
+    initResources(player);
+
+    // Create initial circles
+    for (var i = 0; i < numCircles; ++i ) {
+        circles.push(createCircle());
+    }
+
+    changeBackground();
+
+    // Set up our draw function to be called FPS times/sec
+    setInterval(draw, 1000/FPS);
 }
-
-// Set up our draw function to be called 60 times/sec
-setInterval(draw, 1000/60);
-//setInterval(draw, 2000);
-
-</script>
-
-</body>
-</html>
