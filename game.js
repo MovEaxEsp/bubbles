@@ -2,7 +2,7 @@
 var FPS=30;
 
 // Globals
-var numCircles = 1;
+var numCircles = null;
 var circles = [];
 var cRect = null;
 var canvas = null;
@@ -12,6 +12,7 @@ var Sounds = null;
 var Backgrounds = null;
 var Bubbles = null;
 var SPEED = null;
+var frameIntervalId = null;
 var MIN_BUBBLE_RADIUS = null;
 var MAX_BUBBLE_RADIUS = null;
 
@@ -274,6 +275,14 @@ function draw() {
 }
 
 function runGame(player) {
+    // Reset the game
+    circles = [];
+    numCircles = 1;
+    SPEED = 0;
+    if (frameIntervalId) {
+        clearInterval(frameIntervalId);
+    }
+
     // Set up the canvas
     canvas = document.getElementById("myCanvas");
     canvas.width = screen.width;
@@ -299,5 +308,5 @@ function runGame(player) {
     changeBackground();
 
     // Set up our draw function to be called FPS times/sec
-    setInterval(draw, 1000/FPS);
+    frameIntervalId = setInterval(draw, 1000/FPS);
 }
