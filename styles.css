@@ -4,9 +4,8 @@ body {
     background-color: lightblue;
 }
 
-.playerImages {
-    width: 560px;
-    height: 512px;
+.gameMenu {
+    width: 680px;
     position: absolute;
     top: 0;
     bottom: 0;
@@ -15,7 +14,7 @@ body {
     margin: auto;
 }
 
-.playerImages img {
+.gameMenu img {
     display: inline-block;
     margin: 10px;
     float: left;
@@ -23,7 +22,7 @@ body {
     height: 256px;
 }
 
-.playerImages img:hover {
+.playerSelect img:hover {
     transform: scale(1.1);
 }
 
@@ -31,4 +30,14 @@ p {
     color: red;
     text-align: center;
     font-size: 40px;
+}
+
+.typeSelect img {
+    margin: 20px;
+    border-width: 5px;
+    border-style: outset;
+}
+
+.typeSelect .selected img {
+    border-style: inset;
 }

@@ -2,8 +2,6 @@
 var FPS=30;
 
 // Globals
-var numCircles = null;
-var circles = [];
 var cRect = null;
 var canvas = null;
 var ctx = null;
@@ -15,6 +13,7 @@ var SPEED = null;
 var frameIntervalId = null;
 var MIN_BUBBLE_RADIUS = null;
 var MAX_BUBBLE_RADIUS = null;
+var gameMode = null;
 
 // FUNCTIONS
 
@@ -98,20 +97,11 @@ function changeBackground() {
     curBackground.music.play();
 }
 
-// Create a circle at the specified 'x' and 'y' coordinates, or at random
-// coordinates if 'x' and 'y' aren't specified.
-function createCircle(x, y) {
-    var ret =  {
-        x: x || Math.random() * cRect.width,
-        y: y || Math.random() * cRect.height,
-        radius: Math.random() * (MAX_BUBBLE_RADIUS - MIN_BUBBLE_RADIUS) +
-                                                             MIN_BUBBLE_RADIUS,
-        speedX: SPEED * Math.random(),
-        speedY: SPEED * Math.random(),
-        image: arrayRandom(Bubbles, -1),
-    };
-
-    return ret;
+// Play one of the specified 'sounds'
+function playSound(sounds) {
+    var sound = arrayRandom(sounds, -1);
+    sound.currentTime = 0;
+    sound.play();
 }
 
 // Advance the position of the specified 'circ' after the specified 'elapsed'
@@ -165,40 +155,23 @@ function drawCircle(circ) {
                           circ.y - circ.radius + yOffsets[yIdx],
                           2 *circ.radius,
                           2 *circ.radius);
+
+            if (circ.number !== null) {
+                // Draw the number
+                ctx.font = circ.radius + "px Comic Sans MS";
+                ctx.textAlign = "center";
+                ctx.fillStyle = "red";
+                ctx.fillText(circ.number,
+                             circ.x + xOffsets[xIdx],
+                             circ.y + yOffsets[yIdx] + 30);
+            }
         }
     }
 }
 
-function handleMouseDown(event) {
-    var x = event.clientX - cRect.left;
-    var y = event.clientY - cRect.top;
-
-    if (event.button ===  0) {
-        bubbleHit(x, y);
-    }
-    else if (event.button === 2) {
-        bubbleHit(x, y);
-        //canvasRightClicked(x, y);
-    }
-}
-
-function handleMouseMove(event) {
-    var x = event.clientX - cRect.left;
-    var y = event.clientY - cRect.top;
-
-    //bubbleHit(x, y);
-}
-
-// Play one of the specified 'sounds'
-function playSound(sounds) {
-    var sound = arrayRandom(sounds, -1);
-    sound.currentTime = 0;
-    sound.play();
-}
-
 // Return 'true' if the specified 'circ' is hit by a click at the specified
 // 'x' and 'y' coordinates.
-function checkHit(circ, x, y) {
+function checkClick(circ, x, y) {
     var xOffsets = [0];
     if (circ.x + circ.radius > cRect.width) {
         xOffsets.push(-cRect.width);
@@ -229,58 +202,205 @@ function checkHit(circ, x, y) {
     return false;
 }
 
-// Handle an attempt to hit a bubble at the specified 'x' and 'y' coordinates
-function bubbleHit(x, y) {
-    for (var circIdx in circles) {
-        var circ = circles[circIdx];
-        if (checkHit(circ, x, y)) {
-            // Remove circles until none are left, then create them all again,
-            // plus 1 extra
-            circles.splice(circIdx, 1);
-            playSound(Sounds.pop);
-            break;
-        }
-    }
+// Definition of basic game, with bubbles flying around that just need to be
+// clicked
+function BasicGameMode() {
+    var d_circles = [];
+    var d_numCircles = 0;
 
-    if (circles.length === 0) {
-        numCircles++;
-        for (var i = 0; i < numCircles; ++i) {
-            circles.push(createCircle());
+    // Create a bubble at the specified 'x' and 'y' coordinates, or at random
+    // coordinates if 'x' and 'y' aren't specified.  The bubble is both
+    // appended to 'd_circles' and returned.
+    function createBubble(x, y) {
+        var ret =  {
+            number: null,
+            x: x || Math.random() * cRect.width,
+            y: y || Math.random() * cRect.height,
+            radius: Math.random() *
+                   (MAX_BUBBLE_RADIUS - MIN_BUBBLE_RADIUS) + MIN_BUBBLE_RADIUS,
+            speedX: SPEED * Math.random(),
+            speedY: SPEED * Math.random(),
+            image: arrayRandom(Bubbles, -1),
+        };
+
+        d_circles.push(ret);
+
+        return ret;
+    };
+
+    // Handle the setup of a new game screen.  If the specified 'firstTime' is
+    // 'true', this is the setup for the initial game screen.
+    function handleNewScreen(firstTime) {
+        d_numCircles++;
+        for (var i = 0; i < d_numCircles; ++i) {
+            this.createBubble();
         }
 
         changeBackground();
 
-        // Play a yay :)
-        setTimeout(function() { playSound(Sounds.yay); }, 500);
+        if (!firstTime) {
+            // Play a yay :)
+            setTimeout(function() { playSound(Sounds.yay); }, 500);
+        }
+    };
+
+    // Handle a click on the bubble at the specified 'idx' in 'd_circles'.
+    // Return 'true' if the click was handled and the bubble was hit, or
+    // 'false' if the bubble shouldn't be counted as hit.
+    function checkBubbleHit(idx) {
+        // Remove bubble.  If none are left, recreate, with one extra
+        d_circles.splice(idx, 1);
+        playSound(Sounds.pop);
+
+        if (d_circles.length == 0) {
+            this.handleNewScreen(false);
+        }
+
+        return true;
+    };
+
+    // Check for bubble hits at the specified 'x, y' coordinates.
+    function checkHit(x, y) {
+        for (var circIdx = d_circles.length - 1; circIdx >= 0; --circIdx) {
+            var circ = d_circles[circIdx];
+            if (checkClick(circ, x, y) &&
+                this.checkBubbleHit(circIdx))
+            {
+                return;
+            }
+        }
+    };
+
+    // Draw the content
+    function drawContent() {
+        var elapsed = 1.0/FPS;
+        for (var i = 0; i < d_circles.length; ++i) {
+            var circ = d_circles[i];
+            advanceCircle(circ, elapsed);
+            drawCircle(circ);
+        }
     }
+
+    // Update our state/draw our frame.
+    function draw() {
+        // Draw background
+        ctx.drawImage(curBackground.image, 0, 0, cRect.width, cRect.height);
+        this.drawContent();
+    }
+
+    return {
+        createBubble: createBubble,
+        checkBubbleHit: checkBubbleHit,
+        checkHit: checkHit,
+        handleNewScreen: handleNewScreen,
+        drawContent: drawContent,
+        draw: draw,
+        circles: d_circles,
+    };
+};
+
+// Definition of number game, where a number is shown and thats the only
+// bubble that can be clicked
+function NumberGameMode() {
+    var d_base = new BasicGameMode();
+    var d_targetNumber = null;
+
+    // Create a circle with a number in it
+    function createBubble(x, y) {
+        var ret = d_base.createBubble(x, y);
+        ret.number = Math.floor(Math.random() * 9) + 1;
+
+        if (!this.d_targetNumber) {
+            this.d_targetNumber = ret.number;
+        }
+
+        return ret;
+    }
+
+    // Draw bubbles, along with text saying which number to hit
+    function drawContent() {
+        if (this.d_targetNumber) {
+
+            // Draw the target number at the top of the screen
+            ctx.fillStyle = "cyan";
+            ctx.fillRect(canvas.width/5*4 - 100, 60, 200, 80);
+
+            ctx.font = "60px Comic Sans MS";
+            ctx.textAlign = "center";
+            ctx.fillStyle = "black";
+            ctx.fillText("Click " + this.d_targetNumber,
+                         canvas.width/5 * 4,
+                         120);
+        }
+
+        d_base.drawContent();
+
+    };
+
+    // We only allow the '0'th bubble to be hit
+    function checkBubbleHit(idx) {
+        if (d_base.circles[idx].number === this.d_targetNumber &&
+            d_base.checkBubbleHit.call(this, idx))
+        {
+            // Pick a new target number
+            for (var i in d_base.circles) {
+                if (d_base.circles[i].number !== this.d_targetNumber) {
+                    this.d_targetNumber = d_base.circles[i].number;
+                    break;
+                }
+            }
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    };
+
+    var ret = Object.assign({}, d_base);
+    ret.createBubble = createBubble;
+    ret.drawContent = drawContent;
+    ret.checkBubbleHit = checkBubbleHit;
+
+    return ret;
+};
+
+function handleMouseDown(event) {
+    var x = event.clientX - cRect.left;
+    var y = event.clientY - cRect.top;
+
+    if (event.button ===  0) {
+        gameMode.checkHit(x, y);
+    }
+    else if (event.button === 2) {
+        gameMode.checkHit(x, y);
+        //canvasRightClicked(x, y);
+    }
+}
+
+function handleMouseMove(event) {
+    var x = event.clientX - cRect.left;
+    var y = event.clientY - cRect.top;
+
+    //gameMode.checkHit(x, y);
 }
 
 function canvasRightClicked(x, y) {
-    //circles.push(createCircle(x, y));
+    //gameMode.createBubble(x, y);
 }
 
-// Update our state/draw our frame.  Assume we're called 60 times/sec
-function draw() {
-    var elapsed = 1.0/FPS;
-
-    // Draw background
-    ctx.drawImage(curBackground.image, 0, 0, cRect.width, cRect.height);
-
-    // Draw circles
-    for (var i = 0; i < circles.length; ++i) {
-        var circ = circles[i];
-        advanceCircle(circ, elapsed);
-        drawCircle(circ);
-    }
-}
-
-function runGame(player) {
+function runGame(player, type) {
     // Reset the game
-    circles = [];
-    numCircles = 1;
     SPEED = 0;
     if (frameIntervalId) {
         clearInterval(frameIntervalId);
+    }
+
+    if (type == "numbers") {
+        gameMode = new NumberGameMode();
+    }
+    else {
+        gameMode = new BasicGameMode();
     }
 
     // Set up the canvas
@@ -300,13 +420,11 @@ function runGame(player) {
 
     initResources(player);
 
-    // Create initial circles
-    for (var i = 0; i < numCircles; ++i ) {
-        circles.push(createCircle());
-    }
-
     changeBackground();
 
+    // Create initial circles
+    gameMode.handleNewScreen(true);
+
     // Set up our draw function to be called FPS times/sec
-    frameIntervalId = setInterval(draw, 1000/FPS);
+    frameIntervalId = setInterval(function() { gameMode.draw(); }, 1000/FPS);
 }

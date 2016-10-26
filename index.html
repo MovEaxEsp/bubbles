@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 
 <head>
@@ -8,23 +9,70 @@
 
 <body>
 
-    <div class="playerImages">
-    <p>
-        Who's playing?
-    </p>
+    <div class="gameMenu">
+        <div class="typeSelect">
+            <p>
+                What are you playing?
+            </p>
 
-        <a href="javascript:runGame('mia')">
-            <img src="images/mia.png" />
-        </a>
+            <a id="bubbleGameSelector"
+               href="javascript:setGameType('bubbles')">
+                <img src="images/bubble1.png" />
+            </a>
 
-        <a href="javascript:runGame('emi')">
-            <img src="images/emi.png" />
-        </a>
+            <a id="numberGameSelector"
+               href="javascript:setGameType('numbers')">
+                <img src="images/bubble2.png" />
+            </a>
+        </div>
+
+        <div class="playerSelect">
+            <p>
+                Who's playing?
+            </p>
+
+            <a href="javascript:runGame('mia', curGameType)">
+                <img src="images/mia.png" />
+            </a>
+
+            <a href="javascript:runGame('emi', curGameType)">
+                <img src="images/emi.png" />
+            </a>
+        </div>
     </div>
 
     <canvas id="myCanvas" width="1" height="1">
         Your browser does not support the HTML5 canvas tag.
     </canvas>
+
+    <script>
+        function setGameType(type) {
+            curGameType = type;
+            updateGameSelectors();
+        }
+
+        function updateGameSelectors() {
+            var ele = document.getElementById("bubbleGameSelector");
+            if (curGameType == "bubbles") {
+                ele.className = "selected";
+            }
+            else {
+                ele.className = "";
+            }
+
+            ele = document.getElementById("numberGameSelector");
+            if (curGameType == "numbers") {
+                ele.className = "selected";
+            }
+            else {
+                ele.className = "";
+            }
+        }
+
+        var curGameType = "bubbles";
+        updateGameSelectors();
+    </script>
+
 
 </body>
 </html>
