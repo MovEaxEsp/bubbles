@@ -29,19 +29,19 @@ function initResources(player) {
 
     Bubbles = [ "bubble1.png", "bubble2.png" ];
 
-    if (player == "mia") {
+    if (player === "mia") {
         SPEED = 30;
         MIN_BUBBLE_RADIUS = 50;
         MAX_BUBBLE_RADIUS = 100;
         Sounds.yay = ["allHurray.wav", "kimMia.wav", "krysMia.wav",
-                      "pawWooHoo.wav"]
+                      "pawWooHoo.wav", "emiYayMia.wav"]
     }
-    else {
+    else if (player === "emi") {
         SPEED = 0;
         MIN_BUBBLE_RADIUS = 150;
         MAX_BUBBLE_RADIUS = 200;
         Sounds.yay = ["allHurray.wav", "emiDidIt.wav", "kimEmi.wav",
-                      "miaEmi.wav", "pawWooHoo.wav"]
+                      "miaEmi.wav", "pawWooHoo.wav", "pawYayEmi.wav"]
     }
 
     // Replace each sound name with an Audio object for it
