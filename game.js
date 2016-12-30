@@ -23,7 +23,7 @@ function initResources(player) {
         pop: [ "pop1.wav", "pop2.wav" ],
     };
 
-    Backgrounds = ["busytown", "clifford",
+    Backgrounds = ["brave", "busytown", "clifford", "zootopia",
                       "jake", "paw-patrol", "thomas",
                       "wonder-woman", "frozen", "my-little-pony", "hulk"];
 
@@ -37,7 +37,7 @@ function initResources(player) {
                       "pawWooHoo.wav", "emiYayMia.wav"]
     }
     else if (player === "emi") {
-        SPEED = 0;
+        SPEED = 30;
         MIN_BUBBLE_RADIUS = 150;
         MAX_BUBBLE_RADIUS = 200;
         Sounds.yay = ["allHurray.wav", "emiDidIt.wav", "kimEmi.wav",
