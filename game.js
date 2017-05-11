@@ -24,23 +24,24 @@ function initResources(player) {
 
     Backgrounds = ["brave", "busytown", "clifford", "zootopia",
                       "jake", "paw-patrol", "thomas",
-                      "wonder-woman", "frozen", "my-little-pony", "hulk"];
+                      "wonder-woman", "frozen", "hulk"];
 
     Bubbles = [ "bubble1.png", "bubble2.png" ];
 
+    Sounds.yay = ["allHurray.wav", "pawWooHoo.wav"];
     if (player === "mia") {
         SPEED = 30;
         MIN_BUBBLE_RADIUS = 50;
         MAX_BUBBLE_RADIUS = 100;
-        Sounds.yay = ["allHurray.wav", "kimMia.wav", "krysMia.wav",
-                      "pawWooHoo.wav", "emiYayMia.wav"]
+        Sounds.yay = Sounds.yay.concat([
+                "kimMia.wav", "krysMia.wav", "emiYayMia.wav"]);
     }
     else if (player === "emi") {
         SPEED = 30;
         MIN_BUBBLE_RADIUS = 150;
         MAX_BUBBLE_RADIUS = 200;
-        Sounds.yay = ["allHurray.wav", "emiDidIt.wav", "kimEmi.wav",
-                      "miaEmi.wav", "pawWooHoo.wav", "pawYayEmi.wav"]
+        Sounds.yay = Sounds.yay.concat([
+            "emiDidIt.wav", "kimEmi.wav", "miaEmi.wav", "pawYayEmi.wav"]);
     }
 
     // Replace each sound name with an Audio object for it
