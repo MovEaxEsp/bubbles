@@ -17,9 +17,35 @@ var gameMode = null;
 
 // FUNCTIONS
 
+// Replace all sound names in the specified 'arr' with the corresponding
+// Sound
+function replaceSounds(arr) {
+    for (var idx in arr) {
+        if (Array.isArray(arr[idx])) {
+            replaceSounds(arr[idx]);
+        }
+        else {
+            arr[idx] = new Audio("sounds/" + arr[idx]);
+        }
+    }
+}
+
 function initResources(player) {
     Sounds = {
         pop: [ "pop1.wav", "pop2.wav" ],
+        mistake: ["pawOhNo.mp3", "pawWhoops.mp3", "pawOhBoy.mp3"],
+        numbers: [
+            [],
+            ["one_1.mp3"],
+            ["two_1.mp3"],
+            ["three_1.mp3"],
+            ["four_1.mp3"],
+            ["five_1.mp3"],
+            ["six_1.mp3"],
+            ["seven_1.mp3"],
+            ["eight_1.mp3"],
+            ["nine_1.mp3"]
+        ]
     };
 
     Backgrounds = ["brave", "busytown", "clifford", "zootopia",
@@ -46,9 +72,7 @@ function initResources(player) {
 
     // Replace each sound name with an Audio object for it
     for (var key in Sounds) {
-        for (var idx in Sounds[key]) {
-            Sounds[key][idx] = new Audio("sounds/" + Sounds[key][idx]);
-        }
+        replaceSounds(Sounds[key]);
     }
 
     // Replace each Background name with an object
@@ -306,13 +330,20 @@ function NumberGameMode() {
     var d_base = new BasicGameMode();
     var d_targetNumber = null;
 
+    function setTargetNumber(num, firstBubble) {
+        this.d_targetNumber = num;
+
+        var timeout = firstBubble ? 1000 : 300;
+        setTimeout(function() { playSound(Sounds.numbers[num]); }, timeout);
+    };
+
     // Create a circle with a number in it
     function createBubble(x, y) {
         var ret = d_base.createBubble(x, y);
         ret.number = Math.floor(Math.random() * 9) + 1;
 
         if (!this.d_targetNumber) {
-            this.d_targetNumber = ret.number;
+            setTargetNumber.call(this, ret.number, true);
         }
 
         return ret;
@@ -346,7 +377,9 @@ function NumberGameMode() {
             // Pick a new target number
             for (var i in d_base.circles) {
                 if (d_base.circles[i].number !== this.d_targetNumber) {
-                    this.d_targetNumber = d_base.circles[i].number;
+                    setTargetNumber.call(this,
+                                         d_base.circles[i].number,
+                                         false);
                     break;
                 }
             }
