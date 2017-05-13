@@ -33,18 +33,20 @@ function replaceSounds(arr) {
 function initResources(player) {
     Sounds = {
         pop: [ "pop1.wav", "pop2.wav" ],
-        mistake: ["pawOhNo.mp3", "pawWhoops.mp3", "pawOhBoy.mp3"],
+        mistake: ["pawOhNo.mp3", "pawWhoops.mp3", "pawOhBoy.mp3",
+                  "emiThatsNotIt.mp3", "krysBooHoo.mp3", "krysTryAgain.mp3",
+                  "miaCry.mp3"],
         numbers: [
             [],
-            ["one_1.mp3"],
-            ["two_1.mp3"],
-            ["three_1.mp3"],
-            ["four_1.mp3"],
-            ["five_1.mp3"],
-            ["six_1.mp3"],
-            ["seven_1.mp3"],
-            ["eight_1.mp3"],
-            ["nine_1.mp3"]
+            ["one_1.mp3", "one_2.mp3"],
+            ["two_1.mp3", "two_2.mp3"],
+            ["three_1.mp3", "three_2.mp3"],
+            ["four_1.mp3", "four_2.mp3"],
+            ["five_1.mp3", "five_2.mp3"],
+            ["six_1.mp3", "six_2.mp3"],
+            ["seven_1.mp3", "seven_2.mp3"],
+            ["eight_1.mp3", "eight_2.mp3"],
+            ["nine_1.mp3", "nine_2.mp3"]
         ]
     };
 
@@ -387,6 +389,7 @@ function NumberGameMode() {
             return true;
         }
         else {
+            playSound(Sounds.mistake);
             return false;
         }
     };
