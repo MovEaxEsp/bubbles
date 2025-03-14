@@ -446,6 +446,7 @@ function runGame(player, type) {
     canvas.height = screen.height;
     canvas.addEventListener('mousedown', handleMouseDown, false);
     canvas.addEventListener('mousemove', handleMouseMove, false);
+    canvas.addEventListener('touchstart', handleMouseDown, false);
     cRect = canvas.getBoundingClientRect();
     ctx = canvas.getContext("2d");
 
